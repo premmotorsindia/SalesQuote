@@ -14,9 +14,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-
-
-
 class CustomerQuoteScreen extends StatefulWidget {
   final String userName;
   const CustomerQuoteScreen({super.key, required this.userName});
@@ -24,6 +21,33 @@ class CustomerQuoteScreen extends StatefulWidget {
   State<CustomerQuoteScreen> createState() => _CustomerQuoteScreenState();
 }
 
+class UpperCaseTextFormatter
+    extends TextInputFormatter {
+    @override
+    TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+    ) {
+
+      return TextEditingValue(
+        text: newValue.text.toUpperCase(),
+        selection: newValue.selection,
+      );
+    }
+}
+class LowerCaseTextFormatter
+    extends TextInputFormatter {
+    @override
+    TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+    ) {
+      return TextEditingValue(
+        text: newValue.text.toLowerCase(),
+        selection: newValue.selection,
+      );
+    }
+}
 class _CustomerQuoteScreenState extends State<CustomerQuoteScreen> {
   /// FORM KEY
   final _formKey = GlobalKey<FormState>();
@@ -31,14 +55,11 @@ class _CustomerQuoteScreenState extends State<CustomerQuoteScreen> {
    String userId = "";
    String? locationCode;
    String? showroomType = "";
-   
-  //  final String modelGroup;
   /// 🔹 BASIC CONTROLLERS
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
   final emailController = TextEditingController();
   final cityController = TextEditingController();
-
   /// 🔹 PRICE CONTROLLERS
   final exShowroomController = TextEditingController();
   final txtCorporateOfferController = TextEditingController();
@@ -49,13 +70,11 @@ class _CustomerQuoteScreenState extends State<CustomerQuoteScreen> {
   final txtConsumerOfferController = TextEditingController();
   final txtExchangAmtController = TextEditingController();
   final txtAddDisController = TextEditingController();
-
   /// 🔹 FINANCE CONTROLLERS
   final tenureController = TextEditingController();
   final interestController = TextEditingController();
   final loanAmountController = TextEditingController();
   final emiController = TextEditingController();
-
   /// 🔹 DROPDOWN VARIABLES
   String? customerType, model;
   String? color, profession, corporate, department, parking;
@@ -63,10 +82,7 @@ class _CustomerQuoteScreenState extends State<CustomerQuoteScreen> {
   String? consumerOffer, exchange, addDiscount;
   String? financier, bank, financeOn, percent;
   bool isFinance = false;
- 
   /// 🔹 LISTS
-  
-  /// LISTS
   List<String> financerNames = [];
   List<PriceModel> allData = [];
   List<String> modelList = [];
@@ -90,34 +106,19 @@ class _CustomerQuoteScreenState extends State<CustomerQuoteScreen> {
   double totalOffer = 0;
   final totalOfferController = TextEditingController();
   String? parkingCharge;
- 
-  
-
  /// ================= API LOAD =================
+ 
 final AuthService apiService = AuthService();
-
-
-
 void loadData() async {
   allData = await apiService.getAllData();
-
-  modelList = allData
-      .map((e) => e.modelGroup)
-      .toSet()
-      .toList();
-
+  modelList = allData.map((e) => e.modelGroup).toSet().toList();
   setState(() {});
 }
 Future<void> onModelChanged(String? v) async {
   if (v == null) return;
   setState(() {
     model = v;
-    variantList = allData
-        .where((e) => e.modelGroup == v)
-        .map((e) => e.description)
-        .toSet()
-        .toList();
-
+    variantList = allData .where((e) => e.modelGroup == v).map((e) => e.description).toSet().toList();
     selectedVariant = null;
     selectedVariantCode = null;
     departmentList = [];   // 🔥 clear old data
@@ -125,42 +126,26 @@ Future<void> onModelChanged(String? v) async {
     corporateList = [];   // 🔥 clear old data
     corporate = null;
   });
-   
-  // 🔥 CALL API AFTER STATE UPDATE
   await fetchCorporate(v);
 }
 void loadFinancers() async {
   financerNames = await apiService.getFinancerNames();
-  // financerNames = await getFinancerNames();
   setState(() {});
 }
 void onVariantChanged(String? v) {
   selectedVariant = v;
-
   // 🔹 Filter variant codes
-  var filtered = allData
-      .where((e) =>
-          e.modelGroup == model &&
-          e.description == v)
-      .toList();
-
-  variantCodeList = filtered
-      .map((e) => e.modelWithType)
-      .toSet()
-      .toList();
-
+  var filtered = allData.where((e) => e.modelGroup == model &&  e.description == v).toList();
+  variantCodeList = filtered.map((e) => e.modelWithType).toSet().toList();
   // 🔥 AUTO FILL Ex Showroom (take first item)
   if (filtered.isNotEmpty) {
     exShowroomController.text =
         filtered.first.exShowroom.toString();
   }
-
   selectedVariantCode = null;
   colorList = [];
-
   setState(() {});
 }
-
 void onVariantCodeChanged(String? v) async {
   if (v == null) return;
   selectedVariantCode = v;
@@ -170,9 +155,6 @@ void onVariantCodeChanged(String? v) async {
   color = "Select Colour";
   setState(() {});
 }
-
-
-
 
 Future<void> fetchCorporate(String model) async {
   try {
@@ -186,7 +168,6 @@ Future<void> fetchCorporate(String model) async {
     print("Error: $e");
   }
 }
-
 
 Future<void> fetchDepartments(String corporate) async {
   try {
@@ -206,9 +187,7 @@ Future<int?> saveData() async {
   if (!_formKey.currentState!.validate()) {
     return null;
   }
-
   final body = {
-
     "CustName": nameController.text.trim(),
     "PhoneNo": phoneController.text.trim(),
     "Email": emailController.text.trim(),
@@ -219,108 +198,38 @@ Future<int?> saveData() async {
     "Model_with_Type": selectedVariantCode,
     "Colour": color,
     "Profession": profession,
-
-    "ExShowroomPrice":
-        double.tryParse(
-          exShowroomController.text,
-        ) ?? 0,
-
+    "ExShowroomPrice":double.tryParse(exShowroomController.text,) ?? 0,
     "CorporateName": corporate,
     "DeptName": department,
-
-    "MCDParkingCharges":
-        parking == "Yes" ? 1 : 0,
-
-    "CorporateOffer":
-        double.tryParse(
-          txtCorporateOfferController.text,
-        ) ?? 0,
-
+    "MCDParkingCharges":parking == "Yes" ? 1 : 0,
+    "CorporateOffer":double.tryParse(txtCorporateOfferController.text,) ?? 0,
     "InsurancePer": 0,
-
-    "FastTag":
-        fastag == "Yes" ? 1 : 0,
-
-    "InsuranceAmt":
-        double.tryParse(
-          txtInsAmtController.text,
-        ) ?? 0,
-
+    "FastTag":fastag == "Yes" ? 1 : 0,
+    "InsuranceAmt":double.tryParse(txtInsAmtController.text,) ?? 0,
     "AccessoriesPer": 0,
-
-    "AccessoriesAmt":
-        double.tryParse(
-          txtMGAAmtController.text,
-        ) ?? 0,
-
+    "AccessoriesAmt":double.tryParse(txtMGAAmtController.text,) ?? 0,
     "RTOPer": 0,
-
-    "RTOAmt":
-        double.tryParse(
-          txtRTOAmtController.text,
-        ) ?? 0,
-
+    "RTOAmt":double.tryParse(txtRTOAmtController.text,) ?? 0,
     "WarrantyPer": 0,
-
-    "WarrantyAmt":
-        double.tryParse(
-          txtEWAmountController.text,
-        ) ?? 0,
-
+    "WarrantyAmt": double.tryParse(txtEWAmountController.text,) ?? 0,
     "ConsumerOffer": 0,
-
-    "ConsumerOfferAmt":
-        double.tryParse(
-          txtConsumerOfferController.text,
-        ) ?? 0,
-
+    "ConsumerOfferAmt":double.tryParse(txtConsumerOfferController.text,) ?? 0,
     "ExchangePer": 0,
-
-    "ExchangeAmt":
-        double.tryParse(
-          txtExchangAmtController.text,
-        ) ?? 0,
-
-    "AdditionalDisAmt":
-        double.tryParse(
-          txtAddDisController.text,
-        ) ?? 0,
-
+    "ExchangeAmt":double.tryParse(txtExchangAmtController.text,) ?? 0,
+    "AdditionalDisAmt":double.tryParse(txtAddDisController.text,) ?? 0,
     "FinanceBank": bank,
-
-    "Tenure":
-        int.tryParse(
-          tenureController.text,
-        ) ?? 0,
-
-    "InterestType":
-        interestController.text,
-
-    "LoanPer":
-        double.tryParse(
-          percent?.replaceAll("%", "") ?? "0",
-        ) ?? 0,
-
-    "Loanamount":
-        double.tryParse(
-          loanAmountController.text,
-        ) ?? 0,
-
-    "EMI":
-        double.tryParse(
-          emiController.text,
-        ) ?? 0,
-
+    "Tenure":int.tryParse(tenureController.text,) ?? 0,
+    "InterestType":interestController.text,
+    "LoanPer":double.tryParse(percent?.replaceAll("%", "") ?? "0",) ?? 0,
+    "Loanamount":double.tryParse(loanAmountController.text,) ?? 0,
+    "EMI":double.tryParse(emiController.text,) ?? 0,
     "IsActive": true
   };
-
   final response = await apiService.submitData(body);
 
-  if (response != null &&
-      response["success"] == true) {
-
+  if (response != null && response["success"] == true) 
+  {
     int custId = response["custId"];
-
     ScaffoldMessenger.of(context)
         .showSnackBar(
       const SnackBar(
@@ -329,10 +238,8 @@ Future<int?> saveData() async {
         ),
       ),
     );
-
     return custId;
   }
-
   ScaffoldMessenger.of(context)
       .showSnackBar(
     const SnackBar(
@@ -341,115 +248,12 @@ Future<int?> saveData() async {
       ),
     ),
   );
-
   return null;
 }
-// Future<void> saveData() async {
-//   if (!_formKey.currentState!.validate()) return;
-
-//   final body = {
-//     "CustName": nameController.text.trim(),
-//     "PhoneNo": phoneController.text.trim(),
-//     "Email": emailController.text.trim(),
-//     "City": cityController.text.trim(),
-//     "CustType": customerType,
-//     "Model": model,
-//     "Variant": selectedVariant,
-//     "Model_with_Type": selectedVariantCode,
-//     "Colour": color,
-//     "Profession": profession,
-//     "ExShowroomPrice": double.tryParse(exShowroomController.text) ?? 0,
-//     "CorporateName": corporate,
-//     "DeptName": department,
-//     "MCDParkingCharges": parking == "Yes" ? 1 : 0,
-//     "CorporateOffer":  double.tryParse(txtCorporateOfferController.text) ?? 0,
-//     "InsurancePer": 0,
-//     "FastTag": fastag == "Yes" ? 1 : 0,
-//     "InsuranceAmt": double.tryParse(txtInsAmtController.text) ?? 0,
-//     "AccessoriesPer": 0,
-//     "AccessoriesAmt": double.tryParse(txtMGAAmtController.text) ?? 0,
-//     "RTOPer": 0,
-//     "RTOAmt": double.tryParse(txtRTOAmtController.text) ?? 0,
-//     "WarrantyPer": 0,
-//     "WarrantyAmt": double.tryParse(txtEWAmountController.text) ?? 0,
-//     "ConsumerOffer": 0,
-//     "ConsumerOfferAmt": double.tryParse(txtConsumerOfferController.text) ?? 0,
-//      "ExchangePer": 0,
-//     "ExchangeAmt": double.tryParse(txtExchangAmtController.text) ?? 0,
-//     "AdditionalDisAmt": double.tryParse(txtAddDisController.text) ?? 0,
-//     "FinanceBank": bank,
-//     "Tenure": int.tryParse(tenureController.text) ?? 0,
-//     "InterestType": interestController.text,
-//     "LoanPer": double.tryParse(
-//             percent?.replaceAll("%", "") ?? "0") ??
-//         0,
-//     "Loanamount": double.tryParse(loanAmountController.text) ?? 0,
-//     "EMI": double.tryParse(emiController.text) ?? 0,
-//     "IsActive": true
-//   };
-
-//   final success = await apiService.submitData(body);
-  
-//   if (success) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(content: Text("✅ Data Saved Successfully")),
-//     );
-
-//     void clearForm() {
-//     // 🔹 Text fields
-//     nameController.clear();
-//     phoneController.clear();
-//     emailController.clear();
-//     cityController.clear();
-//     exShowroomController.clear();
-//     txtCorporateOfferController.clear();
-//     txtInsAmtController.clear();
-//     txtMGAAmtController.clear();
-//     txtRTOAmtController.clear();
-//     txtEWAmountController.clear();
-//     txtConsumerOfferController.clear();
-//     txtExchangAmtController.clear();
-//     txtAddDisController.clear();
-//     tenureController.clear();
-//     interestController.clear();
-//     loanAmountController.clear();
-//     emiController.clear();
-
-//   // 🔹 Dropdowns reset
-//   setState(() {
-//     customerType = null;
-//     model = "Select Model With Fuel";
-//     selectedVariant = "Select Variant Name";
-//     selectedVariantCode = "Select Variant Code";
-//     color = null;
-//     profession = null;
-//     corporate = null;
-//     department = null;
-//     parking = null;
-//     fastag = null;
-//     insurance = null;
-//     accessories = null;
-//     rto = null;
-//     warranty = null;
-//     consumerOffer = null;
-//     exchange = null;
-//     addDiscount = null;
-//     financier = null;
-//     bank = null;
-//     financeOn = null;
-//     percent = null;
-//     isFinance = false;
-//   });
-// } // reset form
-//   } else {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(content: Text("❌ Failed to save data")),
-//     );
-//   }
-// }
 
   @override
-  void initState() {
+  void initState()
+  {
     super.initState();
     loadData();
     loadUserData();
@@ -459,67 +263,70 @@ Future<int?> saveData() async {
     txtExchangAmtController.text = "0";
     txtConsumerOfferController.text ="0";
   }
+  List<String> professionList =  [  "Select Profession Type", "Farmers","HouseWife", "NRI", "Other", "Proprietor/Trade", "Retired", "Salaried Govt.","Salaried Private", "Student" ];
+  Widget textField(
+    String label,
+    TextEditingController controller, {
+    bool enabled = true,
+    bool isPhone = false,
+    IconData? icon,
+    bool isEmail = false,
+    bool isRequired = true,
+    bool isLowerCase = false,
+  }) {
 
-  List<String> professionList = 
-  [
-    "Select Profession Type",
-    "Farmers", 
-    "HouseWife",
-    "NRI",
-    "Other",
-    "Proprietor/Trade",
-    "Retired",
-    "Salaried Govt.",
-    "Salaried Private",
-    "Student"
-  ];
-
-
-
-  /// 🔹 TEXTFIELD
- Widget textField(
-  String label,
-  TextEditingController controller, {
-  bool enabled = true,
-  bool isPhone = false,
-  IconData? icon,
-  bool isEmail = false,
-  bool isRequired = true, // 🔥 NEW ADD
-}) {
   return TextFormField(
     controller: controller,
     enabled: enabled,
-    autovalidateMode: AutovalidateMode.onUserInteraction,
-    keyboardType: isPhone ? TextInputType.number : TextInputType.text,
+    autovalidateMode:AutovalidateMode.onUserInteraction,
+    keyboardType:isPhone ? TextInputType.number: TextInputType.text,
+    // ✅ AUTO CAPITAL LETTERS
     inputFormatters: isPhone
+    ? [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(10),
+      ]
+    : isLowerCase
         ? [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
+            LowerCaseTextFormatter(),
           ]
-        : [],
+        : [
+            UpperCaseTextFormatter(),
+          ],
+
     decoration: InputDecoration(
       labelText: label,
-      prefixIcon: icon != null ? Icon(icon) : null,
+      prefixIcon:icon != null ? Icon(icon) : null,
       filled: true,
-      fillColor: enabled ? Colors.white : Colors.grey.shade300,
+      fillColor:enabled? Colors.white: Colors.grey.shade300,
       border: OutlineInputBorder(),
     ),
-    validator: (value) {
-      // 🔥 KEY LOGIC
-      if (!enabled) return null; // disabled → no validation
 
-      if (isRequired && (value == null || value.isEmpty)) {
+    validator: (value) 
+    {
+      if (!enabled) return null;
+
+      if (isRequired && (value == null || value.isEmpty)) 
+      {
+
         return "$label required";
       }
 
       if (isPhone && value!.length != 10) {
+
         return "Phone must be 10 digits";
       }
 
-      if (isEmail && value != null && value.isNotEmpty) {
-        final regex =
-            RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      if (isEmail && value != null && value.isNotEmpty) 
+      
+      {
+
+        final regex = RegExp(
+          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+        );
+
         if (!regex.hasMatch(value)) {
+
           return "Invalid email";
         }
       }
@@ -578,6 +385,58 @@ Future<void> loadUserData() async {
   }
 
 
+void calculateLoanAmount() {
+
+
+  double exShowroom = double.tryParse( exShowroomController.text, ) ?? 0;
+  double insurance = double.tryParse( txtInsAmtController.text, ) ?? 0;
+  double accessories = double.tryParse( txtMGAAmtController.text, ) ?? 0;
+  double rto = double.tryParse( txtRTOAmtController.text, ) ?? 0;
+  double warranty = double.tryParse( txtEWAmountController.text,  ) ?? 0;
+
+
+  double corporateOffer = double.tryParse( txtCorporateOfferController.text, ) ?? 0;
+  double consumerOffer = double.tryParse( txtConsumerOfferController.text, ) ?? 0;
+  double exchange = double.tryParse( exShowroomController.text, ) ??  0;
+  double discount = double.tryParse( txtAddDisController.text, ) ?? 0;
+
+  // ✅ ON ROAD
+  // double onRoad = exShowroom + insurance + accessories + rto + warranty;
+  double onRoad = corporateOffer + consumerOffer + exchange + discount;
+  double loanAmount = 0;
+
+  // ✅ FIRST TIME FULL PRICE
+  if (percent == null || percent!.isEmpty) 
+  {
+    if (financeOn == "ExShowroom") 
+    {
+      loanAmount = exShowroom;
+    }
+    else if (financeOn == "OnRoad") 
+    {
+      loanAmount = onRoad;
+    }
+    else {
+      loanAmount = onRoad;
+    }
+  }
+
+  // ✅ AFTER PERCENT APPLY
+  else {
+    double loanPer = double.tryParse(percent!) ?? 0;
+    if (financeOn == "ExShowroom") {
+      loanAmount = exShowroom * loanPer / 100;
+    }
+    else if (financeOn == "OnRoad") {
+      loanAmount = onRoad ;
+    }
+    else {
+      loanAmount = onRoad ;
+    }
+  }
+  loanAmountController.text = loanAmount.toStringAsFixed(0);
+}
+
 
 
 
@@ -600,9 +459,7 @@ Future<String> generatePdfSave(
   int custId,
 ) async {
 
-  final pdf = pw.Document();
-
-  
+  final pdf = pw.Document();  
   final footerBanner = await imageFromAssetBundle(showroomType == 'Nexa'
         ? 'assets/images/newnexalogo.png'
         : 'assets/images/marutinexa.jpeg',
@@ -612,9 +469,7 @@ Future<String> generatePdfSave(
     pw.Page(
 
       pageFormat: PdfPageFormat.a4,
-
       margin: const pw.EdgeInsets.all(8),
-
       build: (context) {
 
         return pw.Container(
@@ -628,8 +483,7 @@ Future<String> generatePdfSave(
 
           child: pw.Column(
 
-            crossAxisAlignment:
-                pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
 
             children: [
 
@@ -650,27 +504,17 @@ Future<String> generatePdfSave(
 
                     pw.Row(
 
-                      mainAxisAlignment:
-                          pw.MainAxisAlignment
-                              .spaceBetween,
-
-                      crossAxisAlignment:
-                          pw.CrossAxisAlignment.start,
+                      mainAxisAlignment:  pw.MainAxisAlignment .spaceBetween,
+                      crossAxisAlignment:  pw.CrossAxisAlignment.start,
 
                       children: [
                         pw.Text(
-                          data.showroomType == 'Nexa'
-                              ? 'N E X A'
-                              : 'MARUTI SUZUKI ARENA',
-
+                          data.showroomType == 'Nexa' ? 'N E X A'  : 'MARUTI SUZUKI ARENA',
                           style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
                           fontSize: 12,
-
                           // TEXT COLOR
-                          color: data.showroomType == 'Nexa'
-                              ? PdfColors.white
-                              : PdfColors.black,
+                          color: data.showroomType == 'Nexa' ? PdfColors.white : PdfColors.black,
                         ),
                       ),
 
@@ -685,37 +529,27 @@ Future<String> generatePdfSave(
 
                     pw.SizedBox(height: 15),
 
-                    pw.Text(
-                      "PREM MOTORS PVT. LTD.",
+                    pw.Text( "PREM MOTORS PVT. LTD.",
 
                       style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 22,
-
-                        color: data.showroomType == 'Nexa'
-                            ? PdfColors.white
-                            : PdfColors.black,
+                        color: data.showroomType == 'Nexa' ? PdfColors.white : PdfColors.black,
                       ),
                     ),
 
-                    pw.Text(
-                      "(Authorised Maruti Suzuki Dealer)",
+                    pw.Text( "(Authorised Maruti Suzuki Dealer)",
 
                       style: pw.TextStyle(
                       fontSize: 9,
-
-                      color: data.showroomType == 'Nexa'
-                          ? PdfColors.white
-                          : PdfColors.black,
+                      color: data.showroomType == 'Nexa' ? PdfColors.white : PdfColors.black,
                     ),
                     ),
 
-                    pw.Text(
-                      "Location Address : ${data.locationAddress}",
+                    pw.Text( "Location Address : ${data.locationAddress}",
 
                       style: pw.TextStyle(
                         fontSize: 8,
-
                         color: data.showroomType == 'Nexa'
                             ? PdfColors.white
                             : PdfColors.black,
@@ -1545,7 +1379,14 @@ Future<void> sendWhatsApp(
                     const SizedBox(height: 20),
                     textField("PhoneNo", phoneController, icon: Icons.phone, isPhone: true),
                     const SizedBox(height: 20),
-                    textField("Email", emailController, icon: Icons.email, isEmail: true),
+                    // textField("Email", emailController, icon: Icons.email, isEmail: true),
+                    textField(
+                      "Email",
+                      emailController,
+                      icon: Icons.email,
+                      isEmail: true,
+                      isLowerCase: true,
+                    ),
                     const SizedBox(height: 20),
                     textField("City", cityController, icon: Icons.location_city),
                     const SizedBox(height: 20),
@@ -1655,7 +1496,7 @@ Future<void> sendWhatsApp(
                   controller: totalOfferController,
                   readOnly: true,
                   decoration: const InputDecoration(
-                    labelText: "Total",
+                    labelText: "Corporate Offer",
                     prefixText: "₹ ",
                     border: OutlineInputBorder(),
                   ),
@@ -1857,81 +1698,45 @@ Future<void> sendWhatsApp(
 
                         // 👉 Mapping (AUTO — user doesn’t select this)
                         switch (v) {
-                          case "EW 6Yr With CCP 2Yr":
-                            ewType = "EW_Platinum_4th_Year";
-                            ccpType = "CCPPlatinum";
+                          case "EW 6Yr With CCP 2Yr": ewType = "EW_Platinum_4th_Year"; ccpType = "CCPPlatinum";
                             break;
-
-                          case "EW 6Yr Without CCP":
-                            ewType = "EW_Platinum_4th_Year";
+                          case "EW 6Yr Without CCP": ewType = "EW_Platinum_4th_Year";
                             break;
-
-                          case "EW 5Yr With CCP 2Yr":
-                            ewType = "EW_Royal_5th_Year";
-                            ccpType = "CCPPlatinum";
+                          case "EW 5Yr With CCP 2Yr": ewType = "EW_Royal_5th_Year"; ccpType = "CCPPlatinum";
                             break;
-
-                          case "EW 5Yr Without CCP":
-                            ewType = "EW_Royal_5th_Year";
+                          case "EW 5Yr Without CCP":  ewType = "EW_Royal_5th_Year";
                             break;
-
-                          case "None":
-                            setState(() {
-                              isWarrantyEnabled = false;
-                              txtEWAmountController.text = "0";
-                            });
+                          case "None": setState(() { isWarrantyEnabled = false; txtEWAmountController.text = "0"; });
                             return;
-
-                          default:
-                            setState(() {
-                              isWarrantyEnabled = false;
-                              txtEWAmountController.clear();
-                            });
+                          default: setState(() { isWarrantyEnabled = false; txtEWAmountController.clear(); });
                             return;
                         }
-
                         // 🔥 CALL API (no manual ew/ccp input)
                         final amount = await apiService.getWarrantyAmount(
                           selectedVariantCode!,
                           ewType,
                           ccpType,
                         );
-
                         setState(() {
                           isWarrantyEnabled = false;
                           txtEWAmountController.text = amount.toString();
                         });
                       },
                     ),
-
                     const SizedBox(height: 20),
-
-                    textField(
-                      "Warranty Amt",
-                      txtEWAmountController,
-                      enabled: isWarrantyEnabled,
-                    ),
-                    
-
-
-
-
+                    textField( "Warranty Amt", txtEWAmountController,  enabled: isWarrantyEnabled,),
                     const SizedBox(height: 20),
                     dropdown("Select Consumer Offer", consumerOffer, ["Select Consumer Offer", "Yes", "No"], (v) {
                       setState(() {
                         consumerOffer = v;
                         isConsumerOfferEnabled = v == "Yes";
-
                         if (!isConsumerOfferEnabled) {
                           txtConsumerOfferController.clear();
                         }
                       });
                     }),
                     const SizedBox(height: 20),
-                    textField("Consumer Offer Amt", txtConsumerOfferController,
-                        enabled: isConsumerOfferEnabled),
-
-
+                    textField("Consumer Offer Amt", txtConsumerOfferController, enabled: isConsumerOfferEnabled),
                     const SizedBox(height: 20),
                     dropdown("Select Exchange", exchange, ["Select Exchange", "Yes", "No"], (v) {
                       setState(() {
@@ -1943,10 +1748,7 @@ Future<void> sendWhatsApp(
                       });
                     }),
                     const SizedBox(height: 20),
-                    textField("Exchange Amt", txtExchangAmtController,
-                        enabled: isExchangeEnabled),
-
-
+                    textField("Exchange Amt", txtExchangAmtController,enabled: isExchangeEnabled),
                     const SizedBox(height: 20),
                     dropdown("Select Additional Discount", addDiscount, ["Select Additional Discount", "Yes", "No"], (v) {
                       setState(() {
@@ -1957,17 +1759,14 @@ Future<void> sendWhatsApp(
                         }
                       });
                     }),
-
                     const SizedBox(height: 20),
                       textField(
                         "Discount Amt",
                         txtAddDisController,
                          enabled: isDiscountEnabled,
                       ),
-
-
                   // FINANCE SECTION
-                   const SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   const Text("EMI Calculator",
                       style: TextStyle(fontWeight: FontWeight.bold)),
 
@@ -1985,272 +1784,111 @@ Future<void> sendWhatsApp(
                     bank,
                     financerNames,   // ✅ API data here
                     isFinance ? (v) => setState(() => bank = v) : null,
-                  ),
-                  // dropdown("Bank", bank,
-                  //     ["HDFC", "ICICI", "SBI"],
-                  //     isFinance ? (v) => setState(() => bank = v) : null),
-
-                      
+                  ),    
                   const SizedBox(height: 20),
-
                   textField("Tenure", tenureController, enabled: isFinance),
                   const SizedBox(height: 20),
-
-
-                  dropdown("Finance On", financeOn,
-                        ["ExShowroom", "OnRoad" ,"Manual","Cash"],
-                        isFinance ? (v) => setState(() => financeOn = v) : null),
-                    const SizedBox(height: 20),
-
-
-                  textField("Interest", interestController, enabled: isFinance),
+                  dropdown( "Finance On", financeOn, ["ExShowroom", "OnRoad", "Manual", "Cash"],
+                    isFinance
+                        ? (v) {
+                            setState(() {
+                              financeOn = v;
+                              // ✅ RESET %
+                              percent = null;
+                            });
+                            calculateLoanAmount();
+                          }
+                        : null,
+                  ),
                   const SizedBox(height: 20),
-
-                     // ✅ Loan %
-                    dropdown("Loan %", percent,
-                        ["100", "95", "90","85", "80", "75","70"],
-                        isFinance ? (v) => setState(() => percent = v) : null),
-
+                  textField("ROI", interestController, enabled: isFinance),
                   const SizedBox(height: 20),
                   textField("Loan Amount", loanAmountController, enabled: isFinance),
+                     // ✅ Loan %
+                  const SizedBox(height: 20),
+                  dropdown( "Loan %", percent, ["100", "95", "90", "85", "80", "75", "70"],
+                    isFinance
+                        ? (v) {
+                            setState(() {
+                              percent = v;
+                            });
+                            calculateLoanAmount();
+                          }
+                        : null,
+                  ),
                   const SizedBox(height: 20),
                   textField("EMI", emiController, enabled: isFinance),
-
                   const SizedBox(height: 20),
-
-
                   Row(
                   mainAxisAlignment: MainAxisAlignment.end, 
                   children: [
-
-
-
                       ElevatedButton(
                     onPressed: () async {
-
                     try {
 
                       if (_formKey.currentState!
                           .validate()) {
-
                         // SAVE DATA
-                        int? custId =
-                            await saveData();
-
-                        if (custId == null) {
-                          return;
-                        }
-
-                        final prefs =
-                            await SharedPreferences
-                                .getInstance();
-
-                        String locCode =
-                            prefs.getString(
-                                  "locationCode",
-                                ) ??
-                                "";
-
-                        final locationData =
-                            await apiService
-                                .getLocationByDmsCode(
-                          locCode,
-                        );
-
+                        int? custId = await saveData();
+                        if (custId == null) { return;  }
+                        final prefs = await SharedPreferences .getInstance();
+                        String locCode =  prefs.getString( "locationCode", ) ?? "";
+                        final locationData = await apiService .getLocationByDmsCode( locCode,);
                         // CREATE DATA OBJECT
                         final data = QuoteData(
-
-                          showroomType:
-                              showroomType ?? 'Arena',
-
-                          customerName:
-                              nameController.text.trim(),
-
-                          contactNo:
-                              phoneController.text.trim(),
-
-                          email:
-                              emailController.text.trim(),
-
-                          city:
-                              cityController.text.trim(),
-
-                          professionType:
-                              profession ?? '',
-
-                          corporateName:
-                              corporate ?? '',
-
-                          departmentName:
-                              department ?? '',
-
+                          showroomType: showroomType ?? 'Arena',
+                          customerName: nameController.text.trim(),
+                          contactNo:phoneController.text.trim(),
+                          email:emailController.text.trim(),
+                          city:cityController.text.trim(),
+                          professionType:profession ?? '',
+                          corporateName:corporate ?? '',
+                          departmentName:department ?? '',
                           rmName: userName,
                           rmPhone: userId,
-
                           srmName: '',
                           srmPhone: '',
-
                           quotationDate: DateTime.now().toString(),
-
-                          modelWithFuel:
-                              model ?? '',
-
-                          variant:
-                              selectedVariant ?? '',
-
-                          color:
-                              color ?? '',
-
-                          customerFinancierType:
-                              'Individual / ${financier ?? "Cash"}',
-
-                          exShowroom:
-                              double.tryParse(
-                                    exShowroomController.text,
-                                  ) ??
-                                  0,
-
-                          insurance:
-                              double.tryParse(
-                                    txtInsAmtController.text,
-                                  ) ??
-                                  0,
-
-                          ewCcpAmount:
-                              double.tryParse(
-                                    txtEWAmountController.text,
-                                  ) ??
-                                  0,
-
-                          mgaOrGna:
-                              double.tryParse(
-                                    txtMGAAmtController.text,
-                                  ) ??
-                                  0,
-
-                          rtoAmount:
-                              double.tryParse(
-                                    txtRTOAmtController.text,
-                                  ) ??
-                                  0,
-
-                          fasTag:
-                              fastag == 'Yes'
-                                  ? 600
-                                  : 0,
-
-                          mcdParking:
-                              parkingCharge == 'Yes'
-                                  ? 2500
-                                  : 0,
-
-                          corporateOffer:
-                              double.tryParse(
-                                    txtCorporateOfferController.text,
-                                  ) ??
-                                  0,
-
-                          consumerOffer:
-                              double.tryParse(
-                                    txtConsumerOfferController.text,
-                                  ) ??
-                                  0,
-
-                          exchangeOffer:
-                              double.tryParse(
-                                    txtExchangAmtController.text,
-                                  ) ??
-                                  0,
-
-                          addnlDiscount:
-                              double.tryParse(
-                                    txtAddDisController.text,
-                                  ) ??
-                                  0,
-
-                          financeOn:
-                              financier == 'Finance'
-                                  ? (bank ?? 'Finance')
-                                  : 'Cash',
-
-                          loanAmount:
-                              double.tryParse(
-                                    loanAmountController.text,
-                                  ) ??
-                                  0,
-
-                          roi:
-                              double.tryParse(
-                                    interestController.text,
-                                  ) ??
-                                  0,
-
-                          tenureYears:
-                              int.tryParse(
-                                    tenureController.text,
-                                  ) ??
-                                  0,
-
-                          emiAmount:
-                              double.tryParse(
-                                    emiController.text,
-                                  ) ??
-                                  0,
-
-                          locationAddress:
-                              locationData['add1'] ?? '',
-
-                          locationCity:
-                              locationData['locCity'] ?? '',
-
-                          locationPincode:
-                              locationData['pincode'] ?? '',
-
-                          contactPhone:
-                              locationData['contactNo'] ?? '',
-
-                          locationEmail:
-                              locationData['locEmail'] ?? '',
-
-                          accountNumber:
-                              locationData['accountNo'] ?? '',
-
-                          bankName:
-                              locationData['bankname'] ?? '',
-
-                          beneficiary:
-                              locationData['beneficiary'] ?? '',
-
-                          ifscCode:
-                              locationData['ifscCode'] ?? '',
-
-                          branchName:
-                              locationData['branchAddress'] ?? '',
-
+                          modelWithFuel:model ?? '',
+                          variant: selectedVariant ?? '',
+                          color: color ?? '',
+                          customerFinancierType: 'Individual / ${financier ?? "Cash"}',
+                          exShowroom: double.tryParse(exShowroomController.text,) ?? 0,
+                          insurance: double.tryParse( txtInsAmtController.text, ) ??0,
+                          ewCcpAmount: double.tryParse( txtEWAmountController.text, ) ?? 0,
+                          mgaOrGna: double.tryParse( txtMGAAmtController.text, ) ?? 0,
+                          rtoAmount: double.tryParse( txtRTOAmtController.text, ) ?? 0,
+                          fasTag: fastag == 'Yes' ? 600  : 0,
+                          mcdParking:  parkingCharge == 'Yes' ? 2500 : 0,
+                          corporateOffer: double.tryParse( txtCorporateOfferController.text,) ?? 0,
+                          consumerOffer: double.tryParse( txtConsumerOfferController.text, ) ?? 0,
+                          exchangeOffer: double.tryParse( txtExchangAmtController.text, ) ?? 0,
+                          addnlDiscount: double.tryParse( txtAddDisController.text, ) ?? 0,
+                          financeOn: financier == 'Finance' ? (bank ?? 'Finance')  : 'Cash',
+                          loanAmount: double.tryParse( loanAmountController.text, ) ?? 0,
+                          roi: double.tryParse(  interestController.text, ) ?? 0,
+                          tenureYears: int.tryParse( tenureController.text, ) ?? 0,
+                          emiAmount: double.tryParse( emiController.text,  ) ?? 0,
+                          locationAddress: locationData['add1'] ?? '',
+                          locationCity: locationData['locCity'] ?? '',
+                          locationPincode: locationData['pincode'] ?? '',
+                          contactPhone: locationData['contactNo'] ?? '',
+                          locationEmail: locationData['locEmail'] ?? '',
+                          accountNumber: locationData['accountNo'] ?? '',
+                          bankName: locationData['bankname'] ?? '',
+                          beneficiary: locationData['beneficiary'] ?? '',
+                          ifscCode:locationData['ifscCode'] ?? '',
+                          branchName: locationData['branchAddress'] ?? '',
                           hpnCharges: 0,
                           tcsPct: 0,
                         );
 
                         // GENERATE PDF
-                        String pdfPath =await generatePdfSave(
-                          data,
-                          custId,
-                        );
-                         print(pdfPath);
-
-
-                          String pdfUrl =
-                          await uploadPdf(
-                            pdfPath,
-                            custId,
-                          );
-           
+                        String pdfPath =await generatePdfSave( data, custId, );
+                        String pdfUrl = await uploadPdf( pdfPath, custId,);
                        //String pdfUrl = "http://103.203.224.110/salesapi/uploads/PdfImage/3118.pdf";
                         // SEND WHATSAPP
-                        await sendWhatsApp(
-                          pdfUrl,
-                        );
-
+                        await sendWhatsApp( pdfUrl, );
                         ScaffoldMessenger.of(context)
                             .showSnackBar(
                           const SnackBar(
@@ -2262,9 +1900,7 @@ Future<void> sendWhatsApp(
                       }
 
                     } catch (e) {
-
                       print(e);
-
                       ScaffoldMessenger.of(context)
                           .showSnackBar(
                         SnackBar(
@@ -2279,34 +1915,19 @@ Future<void> sendWhatsApp(
                   child: const Text("Submit"),
                 ),
 
-
-
-
-                    const SizedBox(width: 10), // spacing
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      ),
-                      // onPressed: () {
-                      //   if (_formKey.currentState!.validate()) {
-                      //      generatePdf();
-                      //   }
-                      // },
+                const SizedBox(width: 10), // spacing
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),   
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-
-
                     final prefs = await SharedPreferences.getInstance();
-
                     String locCode =prefs.getString("locationCode") ?? "";
-
                     final locationData =await apiService.getLocationByDmsCode(locCode);
-
                     final isNexa = showroomType == 'Nexa';
-                    
                     final data = QuoteData(
-                        
                         customerName: nameController.text.trim(),
                         contactNo: phoneController.text.trim(),
                         email: emailController.text.trim(),
@@ -2321,7 +1942,6 @@ Future<void> sendWhatsApp(
                         quotationDate: DateTime.now().toString(),
                         modelWithFuel: model ?? '',
                         variant: selectedVariant ?? '',
-                        // variantCode: selectedVariantCode ?? '',
                         color: color ?? '',
                         customerFinancierType: 'Individual / ${financier ?? "Cash"}',
                         exShowroom: double.tryParse(exShowroomController.text) ?? 0,
@@ -2341,38 +1961,22 @@ Future<void> sendWhatsApp(
                         tenureYears: int.tryParse(tenureController.text) ?? 0,
                         emiAmount: double.tryParse(emiController.text) ?? 0,
                         showroomType: showroomType ?? 'Arena',
-
-                        // locationAddress: isNexa ? 'Survey No. 54/207 Gopalpura Flyover Near Manav Ashram, Tonk Road, Gopal Pura': 'Ajmer Pulia, GopalbariJaipur-302006',
                         locationAddress: locationData['add1'] ?? '',
-                        // locationCity: 'Jaipur',
                         locationCity: locationData['locCity'] ?? '',
-                        // locationPincode: isNexa ? '302018' : '302006',
                         locationPincode: locationData['pincode'] ?? '',
-                        // contactPhone: isNexa ? '8929782575' : '8929268096',
                         contactPhone:locationData['contactNo'] ?? '',
-
-                        // locationEmail: isNexa ? 'nexajpr.tdm@premmotors.com' : 'cp.sales@premmotors.com',
                         locationEmail: locationData['locEmail'] ?? '',
-                        
-                        // bankName: 'HDFC BANK LTD.',  
                         accountNumber: locationData['accountNo'] ?? '',
-                        // accountNumber: isNexa ? '50200029573580' : '50200029378770',
                         bankName:locationData['bankname'] ?? '',     
-                        // beneficiary: 'M/S PREM MOTORS',  
                         beneficiary:locationData['beneficiary'] ?? '',
-                        // accountNumber: '1234567890',
-                        // ifscCode: 'HDFC0001585',
                         ifscCode:locationData['ifscCode'] ?? '',        
-                        //branchName: 'JAIPUR',
                         branchName: locationData['branchAddress'] ?? '',
-                        hpnCharges: 0,   // ✅ FIXED
+                        hpnCharges: 0,   
                         tcsPct: 0, 
                           );
                       await generatePdf(data);
                     }
                   },
-
-                      // child: const Text("Preview",$showroomType ),
                       child: Text("Preview $showroomType"),
                       
                     ),

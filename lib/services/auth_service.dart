@@ -6,9 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   // 🔥 Use this for real device. For emulator keep 10.0.2.2
   // static const String baseUrl = "http://10.0.2.2:5247";
-  // static const String baseUrl = "http://localhost:5247";
+  static const String baseUrl = "http://localhost:5247";
   //  static const String baseUrl = "http://103.203.224.110";
-   static const String baseUrl = "http://103.203.224.110/salesapi";
+  //  static const String baseUrl = "http://103.203.224.110/salesapi";
 
 
 // ── Stored session ─────────────────────────────────────────
@@ -134,8 +134,7 @@ Future<double> getInsuranceAmount(String modelWithType, String location) async {
     throw Exception("Invalid params: model or location empty");
   }
 
-  final url =
-      "$baseUrl/api/pricelist/insurance?modelWithType=${Uri.encodeComponent(modelWithType)}&location=${Uri.encodeComponent(location)}";
+  final url = "$baseUrl/api/pricelist/insurance?modelWithType=${Uri.encodeComponent(modelWithType)}&location=${Uri.encodeComponent(location)}";
 
   print("URL: $url");
 
@@ -191,17 +190,6 @@ Future<List<PriceModel>> getAllData() async {
     throw Exception("Error");
   }
 }
-
-// Future<List<PriceModel>> getAllData() async {
-//   final res = await http.get(Uri.parse("$baseUrl/api/pricelist/model_group"));
-
-//   if (res.statusCode == 200) {
-//     final List data = jsonDecode(res.body);
-//     return data.map((e) => PriceModel.fromJson(e)).toList();
-//   }
-
-//   throw Exception("Failed");
-// }
 
 
 Future<List<String>> getColors(String code) async {
@@ -304,25 +292,7 @@ Future<Map<String, dynamic>?> submitData(
     return null;
   }
 }
-  // Future<bool> submitData(Map<String, dynamic> body) async {
-  //   final url = Uri.parse("$baseUrl/api/pricelist/save");
-    
-  //   try {
-  //     final response = await http.post(
-  //       url,
-  //       headers: {"Content-Type": "application/json"},
-  //       body: jsonEncode(body),
-  //     );
 
-  //     print("Status: ${response.statusCode}");
-  //     print("Response: ${response.body}");
-
-  //     return response.statusCode == 200 || response.statusCode == 201;
-  //   } catch (e) {
-  //     print("ERROR: $e");
-  //     return false;
-  //   }
-  // }
   
 Future<String?> uploadPdf(
     String filePath,
@@ -357,8 +327,6 @@ Future<String?> uploadPdf(
     print(
       "RESPONSE : $responseData",
     );
-
-    // SUCCESS
     if (response.statusCode == 200) {
 
       if (responseData.isNotEmpty) {
@@ -380,59 +348,14 @@ Future<String?> uploadPdf(
   }
 }
 
-
-
-
-// Future<String> uploadPdf(String filePath) async {
-
-//   var request = http.MultipartRequest(
-
-//   'POST',
-
-//   Uri.parse(
-//     "$baseUrl/api/WhatsApp/upload",
-//   ),
-// );
-
-//   request.files.add(
-
-//     await http.MultipartFile.fromPath(
-//       'file',
-//       filePath,
-//     ),
-//   );
-
-//   var response = await request.send();
-
-//   if (response.statusCode == 200) {
-
-//     var responseData =
-//         await response.stream.bytesToString();
-
-//     var jsonData =
-//         jsonDecode(responseData);
-
-//     return jsonData['url'];
-//   }
-
-//   throw Exception(
-//       "PDF Upload Failed");
-// }
-
-
-
 Future<double> getWarrantyAmount(
   String model,
   String ewType,
   String ccpType,
 ) async {
    
-   final prefs = await SharedPreferences.getInstance();
-  // 🔥 Yaha se loc_Code mil raha hai
+  final prefs = await SharedPreferences.getInstance();
   final locationCode = prefs.getString("locationCode") ?? "";
-  
-
-  // 🚨 Stop API call if location missing
   if (locationCode == null || locationCode.isEmpty) {
     throw Exception("Location not found. Please login again.");
   }
